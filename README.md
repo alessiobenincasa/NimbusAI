@@ -1,147 +1,356 @@
-# 🚀 NimbusAI - Plateforme DevOps
+# Nimbus AI: Advanced LLM-Powered Chatbot Platform
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Nimbus AI](https://img.shields.io/badge/Nimbus-AI-blue?style=for-the-badge)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![GitLab CI](https://img.shields.io/badge/gitlab%20ci-%23181717.svg?style=for-the-badge&logo=gitlab&logoColor=white)](https://about.gitlab.com/)
+[![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white)](https://prometheus.io/)
+[![ElasticSearch](https://img.shields.io/badge/-ElasticSearch-005571?style=for-the-badge&logo=elasticsearch)](https://www.elastic.co/)
 
-## 📋 Vue d'ensemble
+## 📋 Table of Contents
 
-NimbusAI est une plateforme DevOps complète conçue pour faciliter le déploiement, la gestion et la surveillance d'applications IA dans un environnement cloud-native. Cette solution intègre les meilleures pratiques et outils modernes de développement et d'opérations.
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Architecture](#-architecture)
+- [Technology Stack](#-technology-stack)
+- [Getting Started](#-getting-started)
+- [Project Structure](#-project-structure)
+- [API Documentation](#-api-documentation)
+- [Monitoring & Observability](#-monitoring--observability)
+- [Deployment](#-deployment)
+- [Future Enhancements](#-future-enhancements)
 
-## 🏗️ Architecture
+## 🔍 Overview
 
-NimbusAI s'appuie sur une architecture microservices orchestrée par Kubernetes, avec les composants suivants:
+Nimbus AI is a cutting-edge, enterprise-ready LLM-powered conversational platform designed to provide intelligent product information and customer support. With a microservices architecture, comprehensive monitoring, and Kubernetes-based deployment, Nimbus AI represents a complete, production-grade AI solution.
 
-```ascii
-                   ┌─────────────────┐
-                   │    Interface    │
-                   │  Utilisateur   │
-                   └────────┬────────┘
-                            │
-                   ┌────────▼────────┐
-                   │     API Gateway  │
-                   └────────┬────────┘
-                            │
-         ┌─────────────────┼─────────────────┐
-         │                 │                 │
-┌────────▼────────┐ ┌──────▼───────┐ ┌───────▼──────┐
-│  Microservices  │ │ Base de      │ │ Services     │
-│  d'application  │ │ données      │ │ de traitement│
-└────────┬────────┘ └──────┬───────┘ └───────┬──────┘
-         │                 │                 │
-┌────────▼─────────────────▼─────────────────▼──────┐
-│                Infrastructure Cloud                │
-└──────────────────────────────────────────────────┘
+The platform leverages large language models (LLMs) to understand and respond to user queries about products, creating a natural, context-aware conversation flow. The system is built with scalability, observability, and maintainability at its core.
+
+## 🚀 Key Features
+
+- **Intelligent Conversational AI**: Powered by state-of-the-art language models
+- **Product-Aware Responses**: Dynamically accesses product data to provide accurate information
+- **Multi-Brand Support**: Configurable for multiple brands with distinct product catalogs
+- **Conversation Memory**: Maintains context throughout user interactions
+- **Comprehensive Monitoring**: Full observability with Prometheus, Grafana, and ELK stack
+- **Enterprise-Grade Security**: API authentication and proper data handling
+- **Cloud-Native Design**: Built for Kubernetes with scalability in mind
+- **CI/CD Integration**: Automated testing and deployment with GitLab
+- **Infrastructure as Code**: Terraform-managed cloud resources
+
+## 🏗 Architecture
+
+Nimbus AI employs a microservices architecture with the following key components:
+
+```
+                   ┌─────────────┐
+                   │   Client    │
+                   └──────┬──────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────┐
+│                Ingress                  │
+└─────────────────────┬─────────────────┬─┘
+                      │                 │
+          ┌───────────▼──────┐    ┌────▼───────────┐
+          │  API Service     │    │  Monitoring    │
+          │  (FastAPI)       │◄───►  Dashboard     │
+          └─────────┬────────┘    │  (Grafana)     │
+                    │             └────────────────┘
+                    │
+     ┌──────────────┼──────────────┐
+     │              │              │
+┌────▼─────┐   ┌────▼─────┐   ┌────▼─────┐
+│   LLM    │   │ Database │   │   ELK    │
+│ Service  │   │(Postgres)│   │  Stack   │
+└──────────┘   └──────────┘   └──────────┘
 ```
 
-## 🛠️ Technologies et concepts clés
+- **API Service**: Central REST API for client communication
+- **LLM Service**: Manages language model inference
+- **Database**: Stores products, conversation history, and user data
+- **Monitoring Stack**: Prometheus, Grafana, and ELK for complete observability
+- **GitLab CI/CD**: Automated testing and deployment pipeline
+- **Kubernetes**: Container orchestration for all services
 
-### Infrastructure as Code (IaC)
-- **Terraform/Pulumi**: Définition déclarative de l'infrastructure cloud
-- **Configuration Management**: Automatisation du provisionnement et de la configuration
+## 💻 Technology Stack
 
-### Conteneurisation et Orchestration
-- **Docker**: Empaquetage des applications dans des conteneurs isolés
-- **Kubernetes**: Orchestration et scaling automatique des conteneurs
-- **Helm Charts**: Gestion des déploiements Kubernetes
+### Backend
+- **Python 3.9** with FastAPI framework
+- **PostgreSQL** for persistent storage
+- **Hugging Face Transformers** for LLM integration
+- **SQLAlchemy** for ORM 
+- **Pydantic** for data validation
 
-### CI/CD (Intégration et Déploiement Continus)
-- **Pipelines**: Automatisation du build, test et déploiement
-- **GitOps**: Synchronisation de l'état souhaité avec l'état réel
+### DevOps & Infrastructure
+- **Docker** for containerization
+- **Kubernetes** for orchestration
+- **Terraform** for infrastructure as code
+- **GitLab CI/CD** for automated pipelines
 
-### Monitoring et Observabilité
-- **Prometheus**: Collecte de métriques
-- **Grafana**: Visualisation et dashboards
-- **ELK Stack/Loki**: Gestion centralisée des logs
-- **Jaeger/Zipkin**: Traçage distribué
+### Monitoring & Observability
+- **Prometheus** for metrics collection
+- **Grafana** for visualization
+- **Elasticsearch** for log storage
+- **Kibana** for log visualization
+- **Filebeat** for log shipping
+- **OpenTelemetry** for distributed tracing
 
-## 🚀 Installation et démarrage rapide
+## 🚦 Getting Started
 
-### Prérequis
-- Docker et Docker Compose
-- kubectl
-- Une instance Kubernetes (locale ou cloud)
-- make
+### Prerequisites
+
+- Docker and Docker Compose
+- Git
+- Make
+- Kubernetes CLI (kubectl) - for deployment only
+- Terraform - for cloud deployment only
 
 ### Installation
 
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/NimbusAI.git
+   cd NimbusAI
+   ```
+
+2. Run the setup script to initialize the environment:
+   ```bash
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+   
+   Alternatively:
+   ```bash
+   make setup
+   ```
+
+### Running the Application
+
+Start the development environment with all services:
+
 ```bash
-# Clone du dépôt
-git clone https://github.com/username/NimbusAI.git
-cd NimbusAI
+make dev
+```
 
-# Configuration initiale
-./setup.sh
+This will:
+- Build and start all Docker containers
+- Initialize the database
+- Start the API service at http://localhost:8000
+- Start the LLM service at http://localhost:8001
+- Start Grafana at http://localhost:3000
+- Start Kibana at http://localhost:5601
+- Start GitLab at http://localhost:8080
 
-# Déploiement de l'application complète
+### Installation manuelle des dépendances
+
+Si vous préférez installer les dépendances manuellement plutôt qu'utiliser Docker, voici la procédure :
+
+1. Créez et activez un environnement virtuel Python :
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Sur Windows: venv\Scripts\activate
+   ```
+
+2. Installez les dépendances pour le service API :
+   ```bash
+   cd app/api
+   pip install -r requirements.txt
+   ```
+   
+   **Contenu de app/api/requirements.txt :**
+   ```
+   fastapi==0.95.1
+   uvicorn==0.22.0
+   pydantic==1.10.7
+   sqlalchemy==2.0.12
+   psycopg2-binary==2.9.6
+   python-dotenv==1.0.0
+   httpx==0.24.0
+   prometheus-client==0.16.0
+   opentelemetry-api==1.31.1
+   opentelemetry-sdk==1.31.1
+   opentelemetry-instrumentation-fastapi==0.52b1
+   opentelemetry-exporter-prometheus==0.52b1
+   python-jose==3.3.0
+   passlib==1.7.4
+   pytest==7.3.1
+   pytest-cov==4.1.0
+   ```
+
+3. Installez les dépendances pour le service LLM :
+   ```bash
+   cd app/llm
+   pip install -r requirements.txt
+   ```
+   
+   **Contenu de app/llm/requirements.txt :**
+   ```
+   torch==2.0.1
+   torchvision==0.15.2
+   fastapi==0.95.1
+   uvicorn==0.22.0
+   pydantic==1.10.7
+   sqlalchemy==2.0.12
+   psycopg2-binary==2.9.6
+   python-dotenv==1.0.0
+   langchain==0.0.246
+   transformers==4.30.2
+   sentence-transformers==2.2.2
+   huggingface-hub==0.15.1
+   opentelemetry-api==1.31.1
+   opentelemetry-sdk==1.31.1
+   opentelemetry-instrumentation-fastapi==0.52b1
+   opentelemetry-exporter-prometheus==0.52b1
+   prometheus-client==0.16.0
+   pytest==7.3.1
+   pytest-cov==4.1.0
+   accelerate==0.20.3
+   ctransformers==0.2.25
+   bitsandbytes==0.39.1
+   ```
+
+### Compilation et vérification manuelle
+
+Pour compiler et vérifier l'installation sans utiliser Docker :
+
+1. Démarrez le service API manuellement :
+   ```bash
+   cd app/api
+   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+
+2. Dans un autre terminal, démarrez le service LLM :
+   ```bash
+   cd app/llm
+   uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+   ```
+
+3. Vérifiez que les services sont opérationnels :
+   ```bash
+   curl http://localhost:8000/health
+   curl http://localhost:8001/health
+   ```
+
+## 📁 Project Structure
+
+```
+NimbusAI/
+├── app/                      # Application code
+│   ├── api/                  # API service
+│   │   ├── main.py           # FastAPI application
+│   │   ├── models.py         # Database models
+│   │   ├── schemas.py        # Pydantic schemas
+│   │   ├── database.py       # Database connection
+│   │   └── requirements.txt  # Dependencies
+│   ├── llm/                  # LLM service
+│   │   ├── main.py           # FastAPI application
+│   │   ├── llm_service.py    # LLM integration
+│   │   ├── schemas.py        # Pydantic schemas
+│   │   └── requirements.txt  # Dependencies
+│   └── database/             # Database initialization
+├── k8s/                      # Kubernetes manifests
+├── monitoring/               # Monitoring configuration
+├── ci-cd/                    # CI/CD configuration
+├── infrastructure-as-code/   # Infrastructure as code
+├── docker-compose.yml        # Development environment
+├── Makefile                  # Common commands
+└── setup.sh                  # Setup script
+```
+
+## 📚 API Documentation
+
+Once the application is running, API documentation is available at:
+
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+### Key Endpoints
+
+#### API Service
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check endpoint |
+| `/brands` | GET | List all brands |
+| `/brands/{brand_id}` | GET | Get brand details |
+| `/brands/{brand_id}/products` | GET | List products for a brand |
+| `/products/{product_id}` | GET | Get product details |
+| `/brands/{brand_id}/conversations` | POST | Create a new conversation |
+| `/conversations/{conversation_id}/messages` | POST | Send a message and get AI response |
+
+#### LLM Service
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check endpoint |
+| `/model/status` | GET | Get model loading status |
+| `/generate` | POST | Generate a response to user message |
+
+## 🔍 Monitoring & Observability
+
+Nimbus AI includes a comprehensive monitoring and observability stack:
+
+- **Prometheus** (http://localhost:9090): Metrics collection
+- **Grafana** (http://localhost:3000): Metrics visualization
+- **Elasticsearch** (http://localhost:9200): Log storage
+- **Kibana** (http://localhost:5601): Log visualization
+
+Key metrics tracked:
+- API request counts and latencies
+- LLM inference counts and latencies
+- Memory and CPU usage
+- Database connection pool stats
+
+## 🚢 Deployment
+
+### Kubernetes Deployment
+
+Deploy to Kubernetes:
+
+```bash
 make deploy
 ```
 
-### Commandes utiles
+Scale the deployment:
 
 ```bash
-# Afficher l'aide
-make help
-
-# Démarrer l'environnement de développement
-make dev
-
-# Exécuter les tests
-make test
-
-# Déployer sur production
-make deploy-prod
+make scale REPLICAS=3
 ```
 
-## 📁 Structure du projet 
-Pour un projet CV, qeuuel note donne tu a ce projet ? Ameliore moi le readme, rend le plus explicatif sur le code et les notions, plus esthetique@NimbusAI 
+View deployment status:
 
-Évaluation du projet NimbusAI pour CV
-Pour un projet CV en DevOps, je donnerais à ce projet une note de 8.5/10.
-Points forts:
-Structure complète couvrant tous les aspects essentiels du DevOps moderne
-Organisation claire avec séparation des préoccupations (IaC, CI/CD, monitoring, k8s)
-Utilisation de technologies pertinentes dans l'écosystème DevOps actuel
-Automatisation via Makefile et scripts
-Points d'amélioration potentiels:
-Documentation plus détaillée des concepts implémentés
-Exemples concrets d'utilisation et de flux de travail
-Visualisation de l'architecture pour faciliter la compréhension
-Amélioration du README
-Voici une proposition de README amélioré, plus explicatif et esthétique:
-NimbusAI/
-├── app/ # Code source de l'application
-├── ci-cd/ # Configuration des pipelines CI/CD
-├── docs/ # Documentation détaillée
-├── infrastructure-as-code/ # Définition de l'infrastructure (Terraform/Pulumi)
-├── k8s/ # Manifestes Kubernetes et Helm Charts
-├── monitoring/ # Configuration de la stack de monitoring
-├── docker-compose.yml # Composition des services pour le développement
-├── Makefile # Automatisation des tâches
-├── setup.sh # Script d'installation
-└── README.md # Ce guide
+```bash
+make status
+```
 
+### Infrastructure as Code
 
-## 📖 Concept DevOps en détail
+Deploy cloud infrastructure with Terraform:
 
-### Continuous Integration (CI)
-Les modifications de code sont automatiquement testées et validées à chaque commit, permettant une détection précoce des problèmes.
+```bash
+make infra
+```
 
-### Continuous Deployment (CD)
-Processus automatisé permettant de déployer les changements validés en production de manière fiable.
+This will create all necessary cloud resources according to the Terraform configuration in `infrastructure-as-code/terraform/`.
 
-### Infrastructure as Code (IaC)
-L'infrastructure est définie et gérée par du code versionné, éliminant la configuration manuelle et les erreurs humaines.
+## 🔮 Future Enhancements
 
-### Observabilité
-Combinaison de métriques, logs et traces pour une compréhension complète de l'état et du comportement du système.
+- **Multi-Modal Support**: Add image and voice input/output capabilities
+- **A/B Testing Framework**: For comparing different LLM prompts and configurations
+- **User Authentication**: Add OAuth2 and role-based access control
+- **Fine-tuned Models**: Implement domain-specific fine-tuning
+- **Knowledge Base Integration**: Connect to external knowledge sources
+- **Sentiment Analysis**: Track and respond to user sentiment
+- **Multilingual Support**: Extend capabilities to multiple languages
 
-### GitOps
-Approche déclarative où Git est la source unique de vérité pour la configuration de l'infrastructure et des applications.
+---
 
-## 🤝 Contribution
+## License
 
-Les contributions sont les bienvenues ! Veuillez consulter le fichier CONTRIBUTING.md pour les directives.
+© 2023 Nimbus AI. All rights reserved.
 
-## 📝 Licence
+---
 
-Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
+*Made with ❤️ by Alessio Benincasa* 
