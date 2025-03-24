@@ -349,7 +349,7 @@ This will create all necessary cloud resources according to the Terraform config
 
 ## License
 
-© 2023 Nimbus AI. All rights reserved.
+Ce projet est distribué sous la licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ---
 
