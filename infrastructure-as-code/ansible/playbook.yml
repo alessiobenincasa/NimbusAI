@@ -1,0 +1,114 @@
+---
+- name: Configure Kubernetes cluster for LLM Chatbot
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  vars:
+    kubernetes_context: "k3d-llm-chatbot-cluster"
+    namespaces:
+      - app
+      - monitoring
+      - gitlab
+
+  tasks:
+    - name: Ensure required tools are installed
+      block:
+        - name: Check if kubectl is installed
+          command: which kubectl
+          register: kubectl_installed
+          ignore_errors: true
+          changed_when: false
+
+        - name: Check if k3d is installed
+          command: which k3d
+          register: k3d_installed
+          ignore_errors: true
+          changed_when: false
+
+        - name: Check if docker is installed
+          command: which docker
+          register: docker_installed
+          ignore_errors: true
+          changed_when: false
+
+        - name: Print warning if tools are missing
+          debug:
+            msg: "Warning: Required tools missing. Please install kubectl, k3d, and docker."
+          when: kubectl_installed.rc != 0 or k3d_installed.rc != 0 or docker_installed.rc != 0
+
+    - name: Create Kubernetes cluster if it doesn't exist
+      block:
+        - name: Check if cluster exists
+          command: k3d cluster list {{ kubernetes_context }}
+          register: cluster_exists
+          ignore_errors: true
+          changed_when: false
+
+        - name: Create Kubernetes cluster
+          command: >
+            k3d cluster create {{ kubernetes_context }}
+            --api-port 6550
+            --port 80:80@loadbalancer
+            --port 443:443@loadbalancer
+            --agents 2
+          when: cluster_exists.rc != 0
+
+    - name: Set kubectl context
+      command: kubectl config use-context {{ kubernetes_context }}
+      changed_when: false
+
+    - name: Create namespaces
+      kubernetes.core.k8s:
+        state: present
+        kind: Namespace
+        name: "{{ item }}"
+      loop: "{{ namespaces }}"
+
+    - name: Apply storage class
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: storage.k8s.io/v1
+          kind: StorageClass
+          metadata:
+            name: local-storage
+            annotations:
+              storageclass.kubernetes.io/is-default-class: "true"
+          provisioner: k8s.io/minikube-hostpath
+          volumeBindingMode: Immediate
+          reclaimPolicy: Delete
+
+    - name: Create database credentials
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: database-credentials
+            namespace: app
+          type: Opaque
+          data:
+            username: cG9zdGdyZXM=  # postgres
+            password: cG9zdGdyZXM=  # postgres
+            url: cG9zdGdyZXNxbDovL3Bvc3RncmVzOnBvc3RncmVzQGxsbS1jaGF0Ym90LWRhdGFiYXNlOjU0MzIvbGxtY2hhdGJvdA==  # postgresql://postgres:postgres@llm-chatbot-database:5432/llmchatbot
+
+    - name: Setup Docker registry
+      block:
+        - name: Check if registry container exists
+          command: docker ps -a --filter name=registry
+          register: registry_exists
+          changed_when: false
+
+        - name: Create local Docker registry
+          command: docker run -d -p 5000:5000 --restart=always --name registry registry:2
+          when: "'registry' not in registry_exists.stdout"
+
+    - name: Print success message
+      debug:
+        msg: |
+          Kubernetes cluster setup completed successfully.
+          You can now deploy the application using:
+          - make deploy (Kubernetes deployment)
+          - make dev (local development with Docker Compose) 

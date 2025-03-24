@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: llm-chatbot-database
+  namespace: app
+  labels:
+    app: llm-chatbot
+    component: database
+spec:
+  serviceName: "llm-chatbot-database"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-chatbot
+      component: database
+  template:
+    metadata:
+      labels:
+        app: llm-chatbot
+        component: database
+    spec:
+      containers:
+      - name: postgres
+        image: localhost:5000/llm-chatbot-database:${VERSION}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: password
+        - name: POSTGRES_DB
+          value: "llmchatbot"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1
+            memory: 1Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "local-storage"
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-chatbot-database
+  namespace: app
+  labels:
+    app: llm-chatbot
+    component: database
+spec:
+  selector:
+    app: llm-chatbot
+    component: database
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: database-credentials
+  namespace: app
+type: Opaque
+data:
+  username: cG9zdGdyZXM=  # postgres
+  password: cG9zdGdyZXM=  # postgres
+  url: cG9zdGdyZXNxbDovL3Bvc3RncmVzOnBvc3RncmVzQGxsbS1jaGF0Ym90LWRhdGFiYXNlOjU0MzIvbGxtY2hhdGJvdA==  # postgresql://postgres:postgres@llm-chatbot-database:5432/llmchatbot 

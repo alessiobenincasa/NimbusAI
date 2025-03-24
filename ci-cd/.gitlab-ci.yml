@@ -1,0 +1,125 @@
+stages:
+  - test
+  - build
+  - deploy
+  - monitor
+
+variables:
+  REGISTRY: localhost:5000
+  APP_NAME: llm-chatbot
+  KUBE_CONTEXT: k3d-llm-chatbot-cluster
+
+# Templates
+.test-template: &test-template
+  stage: test
+  image: python:3.9-slim
+  before_script:
+    - pip install -r app/requirements.txt
+    - pip install pytest pytest-cov
+  artifacts:
+    paths:
+      - test-results/
+    reports:
+      junit: test-results/junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: test-results/coverage.xml
+
+.build-template: &build-template
+  stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $REGISTRY
+  script:
+    - docker build -t $REGISTRY/$APP_NAME-$COMPONENT:$CI_COMMIT_SHA -t $REGISTRY/$APP_NAME-$COMPONENT:latest ./app/$COMPONENT
+    - docker push $REGISTRY/$APP_NAME-$COMPONENT:$CI_COMMIT_SHA
+    - docker push $REGISTRY/$APP_NAME-$COMPONENT:latest
+  only:
+    - main
+
+.deploy-template: &deploy-template
+  stage: deploy
+  image: 
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  before_script:
+    - kubectl config use-context $KUBE_CONTEXT
+  script:
+    - sed -i "s|$REGISTRY/$APP_NAME-$COMPONENT:latest|$REGISTRY/$APP_NAME-$COMPONENT:$CI_COMMIT_SHA|g" k8s/$COMPONENT/deployment.yaml
+    - kubectl apply -f k8s/$COMPONENT/deployment.yaml
+    - kubectl rollout status deployment/$APP_NAME-$COMPONENT -n app
+  environment:
+    name: production
+  only:
+    - main
+
+# Test Jobs
+test:api:
+  <<: *test-template
+  script:
+    - cd app/api
+    - pytest --cov=. --cov-report=xml:../../test-results/coverage.xml --junitxml=../../test-results/junit.xml tests/
+
+test:llm:
+  <<: *test-template
+  script:
+    - cd app/llm
+    - pytest --cov=. --cov-report=xml:../../test-results/coverage.xml --junitxml=../../test-results/junit.xml tests/
+
+# Build Jobs
+build:api:
+  <<: *build-template
+  variables:
+    COMPONENT: api
+
+build:llm:
+  <<: *build-template
+  variables:
+    COMPONENT: llm
+
+build:database:
+  <<: *build-template
+  variables:
+    COMPONENT: database
+
+# Deploy Jobs
+deploy:api:
+  <<: *deploy-template
+  variables:
+    COMPONENT: api
+  needs:
+    - build:api
+
+deploy:llm:
+  <<: *deploy-template
+  variables:
+    COMPONENT: llm
+  needs:
+    - build:llm
+
+deploy:database:
+  <<: *deploy-template
+  variables:
+    COMPONENT: database
+  needs:
+    - build:database
+
+# Monitor Jobs
+monitor:production:
+  stage: monitor
+  image: 
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  before_script:
+    - kubectl config use-context $KUBE_CONTEXT
+  script:
+    - kubectl get pods -n app
+    - kubectl get svc -n app
+    - kubectl get ingress -n app
+    - kubectl top pods -n app
+  environment:
+    name: production
+  only:
+    - main 

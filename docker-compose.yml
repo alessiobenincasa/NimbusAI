@@ -1,0 +1,159 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./app/api
+    container_name: llm-chatbot-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@database:5432/llmchatbot
+      - LLM_SERVICE_URL=http://llm:8001
+      - LOG_LEVEL=debug
+      - ENVIRONMENT=development
+    volumes:
+      - ./app/api:/app
+    depends_on:
+      - database
+      - llm
+    networks:
+      - llm-chatbot-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  llm:
+    build: ./app/llm
+    container_name: llm-chatbot-llm
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@database:5432/llmchatbot
+      - MODEL_PATH=/app/models
+      - LOG_LEVEL=debug
+      - ENVIRONMENT=development
+    volumes:
+      - ./app/llm:/app
+      - llm-models:/app/models
+    depends_on:
+      - database
+    networks:
+      - llm-chatbot-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+  database:
+    build: ./app/database
+    container_name: llm-chatbot-database
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=llmchatbot
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./app/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - llm-chatbot-network
+
+  prometheus:
+    image: prom/prometheus
+    container_name: llm-chatbot-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - llm-chatbot-network
+
+  grafana:
+    image: grafana/grafana
+    container_name: llm-chatbot-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - llm-chatbot-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+    container_name: llm-chatbot-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - llm-chatbot-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.14.0
+    container_name: llm-chatbot-kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - llm-chatbot-network
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.14.0
+    container_name: llm-chatbot-filebeat
+    volumes:
+      - ./monitoring/elk/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - llm-chatbot-network
+
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: llm-chatbot-gitlab
+    ports:
+      - "8080:80"
+      - "8443:443"
+      - "8022:22"
+    volumes:
+      - gitlab-config:/etc/gitlab
+      - gitlab-logs:/var/log/gitlab
+      - gitlab-data:/var/opt/gitlab
+    environment:
+      - GITLAB_OMNIBUS_CONFIG="external_url 'http://localhost:8080'; gitlab_rails['gitlab_shell_ssh_port'] = 8022;"
+    networks:
+      - llm-chatbot-network
+
+  gitlab-runner:
+    image: gitlab/gitlab-runner:latest
+    container_name: llm-chatbot-gitlab-runner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gitlab-runner-config:/etc/gitlab-runner
+    depends_on:
+      - gitlab
+    networks:
+      - llm-chatbot-network
+
+networks:
+  llm-chatbot-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+  elasticsearch-data:
+  llm-models:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
+  gitlab-runner-config: 
