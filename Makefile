@@ -35,13 +35,38 @@ deploy: build
 
 test:
 	@echo "🧪 Exécution des tests..."
-	cd app && pytest
+	source .venv/bin/activate && cd app && pytest
 
 clean:
-	@echo "🧹 Nettoyage de l'environnement..."
-	docker-compose down
-	kubectl delete namespace $(NAMESPACE)
-	kubectl create namespace $(NAMESPACE)
+	@echo "🧹 Nettoyage complet de l'environnement..."
+	@echo "🔽 Arrêt des conteneurs Docker..."
+	docker-compose down || true
+	
+	@echo "🗑️ Suppression des namespaces Kubernetes..."
+	kubectl delete namespace $(NAMESPACE) || true
+	kubectl delete namespace monitoring || true
+	kubectl delete namespace gitlab || true
+	
+	@echo "🗑️ Suppression du registre Docker..."
+	docker stop registry || true
+	docker rm registry || true
+	
+	@echo "🗑️ Suppression du cluster K3d..."
+	k3d cluster delete llm-chatbot-cluster || true
+	
+	@echo "🗑️ Suppression de l'environnement virtuel Python..."
+	rm -rf .venv || true
+	
+	@echo "🗑️ Nettoyage des caches Python..."
+	find . -name "__pycache__" -type d -exec rm -rf {} +
+	find . -name "*.pyc" -delete
+	find . -name "*.pyo" -delete
+	find . -name "*.pyd" -delete
+	find . -name ".pytest_cache" -type d -exec rm -rf {} +
+	find . -name ".coverage" -delete
+	find . -name "htmlcov" -type d -exec rm -rf {} +
+	
+	@echo "✅ Nettoyage terminé! L'environnement a été complètement réinitialisé."
 
 logs:
 	@echo "📋 Affichage des logs..."

@@ -1,6 +1,11 @@
 import unittest
 from unittest.mock import patch, MagicMock, AsyncMock
 import uuid
+import sys
+import os
+
+# Ajouter le répertoire parent au PYTHONPATH
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from llm_service import LLMService
 from models import Brand, Product, ProductAttribute

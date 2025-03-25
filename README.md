@@ -106,6 +106,27 @@ Nimbus AI employs a microservices architecture with the following key components
 - Make
 - Kubernetes CLI (kubectl) - for deployment only
 - Terraform - for cloud deployment only
+- Ansible - for configuration management
+
+#### Installing Terraform
+- **macOS**: `brew tap hashicorp/tap && brew install hashicorp/tap/terraform`
+- **Ubuntu/Debian**: 
+  ```bash
+  sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+  curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+  sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+  sudo apt-get update && sudo apt-get install terraform
+  ```
+- **Windows**: Install using [Chocolatey](https://chocolatey.org/) with `choco install terraform`
+
+#### Installing Ansible
+- **macOS**: `brew install ansible`
+- **Ubuntu/Debian**: `sudo apt update && sudo apt install ansible`
+- **Fedora**: `sudo dnf install ansible`
+- **Windows**: Ansible is not natively supported on Windows, use WSL or:
+  ```bash
+  pip install ansible
+  ```
 
 ### Installation
 
@@ -211,27 +232,30 @@ Si vous préférez installer les dépendances manuellement plutôt qu'utiliser D
    bitsandbytes==0.39.1
    ```
 
-### Compilation et vérification manuelle
+### Prérequis système
 
-Pour compiler et vérifier l'installation sans utiliser Docker :
+Avant de commencer, assurez-vous que les outils suivants sont installés sur votre système :
 
-1. Démarrez le service API manuellement :
-   ```bash
-   cd app/api
-   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-   ```
+### Outils DevOps essentiels
+- **Docker et Docker Compose** : [Instructions d'installation](https://docs.docker.com/get-docker/)
+- **kubectl** : [Instructions d'installation](https://kubernetes.io/docs/tasks/tools/)
+- **k3d** : `curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash`
+- **Terraform** : [Instructions d'installation](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+- **Git** : [Instructions d'installation](https://git-scm.com/downloads)
 
-2. Dans un autre terminal, démarrez le service LLM :
-   ```bash
-   cd app/llm
-   uvicorn main:app --host 0.0.0.0 --port 8001 --reload
-   ```
+### Pour le développement Python local
+- **Python 3.9** : [Instructions d'installation](https://www.python.org/downloads/)
+- **Bibliothèques PostgreSQL** :
+  - macOS : `brew install postgresql`
+  - Ubuntu/Debian : `sudo apt-get install libpq-dev python3-dev`
+  - Fedora/RHEL : `sudo dnf install postgresql-devel python3-devel`
 
-3. Vérifiez que les services sont opérationnels :
-   ```bash
-   curl http://localhost:8000/health
-   curl http://localhost:8001/health
-   ```
+### Vérification des prérequis
+Vous pouvez vérifier que tous les prérequis sont installés en exécutant :
+```bash
+./setup.sh
+```
+Le script vous indiquera s'il manque des dépendances requises.
 
 ## 📁 Project Structure
 

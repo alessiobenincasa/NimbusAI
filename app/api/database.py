@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 # Get database URL from environment or use default
 DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://postgres:postgres@database:5432/llmchatbot"
+    "DATABASE_URL", "postgresql+psycopg://postgres:postgres@database:5432/llmchatbot"
 )
 
 # Create engine
