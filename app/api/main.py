@@ -15,7 +15,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 # Local imports
 from models import Brand, Product, Conversation, Message
 from database import get_db, init_db
-from schemas import BrandSchema, ProductSchema, MessageCreate, ConversationSchema
+from schemas import BrandSchema, ProductSchema, MessageCreate, ConversationSchema, MessageSchema
 
 # Initialize FastAPI
 app = FastAPI(
@@ -145,6 +145,7 @@ async def create_message(
     )
     db.add(db_message)
     db.commit()
+    db.refresh(db_message)  # Refresh to get the ID and created_at
     
     # Call LLM service for response
     import httpx
@@ -177,10 +178,15 @@ async def create_message(
             )
             db.add(ai_message)
             db.commit()
+            db.refresh(ai_message)  # Refresh to get the ID and created_at
+            
+            # Convert the SQLAlchemy objects to Pydantic models for proper JSON serialization
+            user_message_schema = MessageSchema.from_orm(db_message)
+            ai_message_schema = MessageSchema.from_orm(ai_message)
             
             return {
-                "user_message": db_message,
-                "ai_response": ai_message
+                "user_message": user_message_schema,
+                "ai_response": ai_message_schema
             }
     
     except httpx.RequestError:

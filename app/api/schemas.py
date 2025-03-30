@@ -10,6 +10,7 @@ class ProductAttributeSchema(BaseModel):
     value: str
 
     class Config:
+        from_attributes = True
         orm_mode = True
 
 # Product Schema
@@ -22,6 +23,7 @@ class ProductSchema(BaseModel):
     attributes: List[ProductAttributeSchema] = []
 
     class Config:
+        from_attributes = True
         orm_mode = True
 
 # Brand Schema
@@ -32,6 +34,7 @@ class BrandSchema(BaseModel):
     products: List[ProductSchema] = []
 
     class Config:
+        from_attributes = True
         orm_mode = True
 
 # Message Schema
@@ -43,6 +46,7 @@ class MessageSchema(BaseModel):
     created_at: datetime
 
     class Config:
+        from_attributes = True
         orm_mode = True
 
 # Message Create Schema
@@ -58,6 +62,7 @@ class ConversationSchema(BaseModel):
     messages: List[MessageSchema] = []
 
     class Config:
+        from_attributes = True
         orm_mode = True
 
 # LLM Request Schema
