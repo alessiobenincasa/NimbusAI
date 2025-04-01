@@ -408,7 +408,7 @@ Le projet a été adapté pour fonctionner avec Python 3.13 et versions ultérie
 
 ## License
 
-Ce projet est distribué sous la licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+Ce projet est distribué sous licence. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ---
 
